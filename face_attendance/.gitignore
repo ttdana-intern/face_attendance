@@ -1,0 +1,16 @@
+# Python cache files
+pycache/
+*.py[cod]
+*$py.class
+
+# IDE settings
+.idea/
+.vscode/
+
+# Virtual Environment (ရှိရင်)
+venv/
+env/
+
+# Sensitive data / Database (လိုအပ်ရင်)
+.env
+*.db

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Face Attendance</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {'50':'#f0f9ff','100':'#e0f2fe','200':'#bae6fd','300':'#7dd3fc','400':'#38bdf8','500':'#0ea5e9','600':'#0284c7','700':'#0369a1','800':'#075985','900':'#0c4a6e'},
+                        accent: {'500':'#10b981','600':'#059669'},
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .status-running { @apply bg-accent-500/20 text-accent-600 dark:bg-accent-600/20 dark:text-accent-400; }
+        .status-stopped { @apply bg-red-500/20 text-red-600 dark:bg-red-600/20 dark:text-red-400; }
+        .snapshot-present { @apply text-accent-600 dark:text-accent-400 bg-accent-50 dark:bg-accent-900/50; }
+        .snapshot-absent { @apply text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/50; }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 font-sans text-gray-900 dark:text-gray-100 transition-colors duration-300">
+    <header class="bg-white dark:bg-gray-800 shadow-lg">
+        <div class="container mx-auto p-6 flex justify-between items-center">
+            <h1 class="text-2xl font-bold flex items-center">
+                <svg class="w-8 h-8 mr-2 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Admin Dashboard
+            </h1>
+            <div class="flex items-center space-x-4">
+                <a href="/" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition">Home</a>
+                <a href="/logout" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition">Logout</a>
+                <button id="theme-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition">
+                    <svg class="w-5 h-5 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+    <main class="container mx-auto p-6">
+        {% if camera_error %}
+            <div class="bg-red-50 dark:bg-red-900/50 border-l-4 border-red-500 text-red-600 dark:text-red-300 p-4 mb-6 rounded-lg flex items-center" role="alert">
+                <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                    <p class="font-bold">Camera Error</p>
+                    <p>{{ camera_error }}</p>
+                </div>
+            </div>
+        {% endif %}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 transform hover:shadow-2xl transition duration-300">
+                <h2 class="text-xl font-semibold mb-4 flex items-center">
+                    <svg class="w-6 h-6 mr-2 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
+                    </svg>
+                    Manage Classes
+                </h2>
+                <form method="post" action="/start" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Select Class</label>
+                        <select name="class_name" class="w-full p-3 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition">
+                            {% for c in classes %}
+                                <option value="{{c}}" {% if c==current_class %}selected{% endif %}>{{c}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full bg-primary-600 text-white py-3 rounded-lg hover:bg-primary-700 focus:ring-4 focus:ring-primary-300 dark:focus:ring-primary-800 transition flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        </svg>
+                        Start Attendance
+                    </button>
+                </form>
+                <form method="post" action="/create_class" class="mt-4 space-y-4">
+                    <input name="new_class" placeholder="New class name" class="w-full p-3 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition"/>
+                    <button type="submit" class="w-full bg-gray-600 text-white py-3 rounded-lg hover:bg-gray-700 focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-800 transition flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Create Class
+                    </button>
+                </form>
+                <div class="mt-6 flex items-center space-x-3">
+                    <span class="text-sm font-medium">Status:</span>
+                    <span class="{% if running %}status-running{% else %}status-stopped{% endif %} px-4 py-1 rounded-full text-sm font-semibold">
+                        {% if running %}Running{% else %}Stopped{% endif %}
+                    </span>
+                    {% if current_class %}
+                        <span class="bg-primary-50 dark:bg-primary-900/50 text-primary-600 dark:text-primary-400 px-4 py-1 rounded-full text-sm font-semibold">{{ current_class }}</span>
+                    {% endif %}
+                </div>
+                {% if running %}
+                    <form method="post" action="/stop" class="mt-4">
+                        <button type="submit" class="w-full bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 focus:ring-4 focus:ring-red-300 dark:focus:ring-red-800 transition flex items-center justify-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            Stop Attendance
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 transform hover:shadow-2xl transition duration-300">
+                <h2 class="text-xl font-semibold mb-4 flex items-center">
+                    <svg class="w-6 h-6 mr-2 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    Today's Attendance
+                </h2>
+                <div class="flex space-x-4 mb-4">
+                    <select id="snapClass" class="flex-1 p-3 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition">
+                        {% for c in classes %}
+                            <option value="{{c}}" {% if c==current_class %}selected{% endif %}>{{c}}</option>
+                        {% endfor %}
+                    </select>
+                    <button onclick="loadSnapshot()" class="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 focus:ring-4 focus:ring-primary-300 dark:focus:ring-primary-800 transition flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Refresh
+                    </button>
+                </div>
+                <ul id="snapshot" class="mt-4 space-y-3 max-h-96 overflow-y-auto pr-2"></ul>
+            </div>
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 transform hover:shadow-2xl transition duration-300">
+                <h2 class="text-xl font-semibold mb-4 flex items-center">
+                    <svg class="w-6 h-6 mr-2 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10h3.5M15 14h3.5m-7-7v14m-4-14v14" />
+                    </svg>
+                    Live Camera Feed
+                </h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Real-time face recognition for attendance.</p>
+                <div class="relative">
+                    <img id="cam" src="/video_feed" class="w-full rounded-xl border border-gray-200 dark:border-gray-600 shadow-inner"/>
+                    <div class="absolute top-2 right-2 bg-white dark:bg-gray-800 px-3 py-1 rounded-full text-sm font-medium shadow">
+                        {% if running %}Active{% else %}Idle{% endif %}
+                    </div>
+                </div>
+                <a href="/test_detection" class="block w-full bg-blue-600 text-white py-3 rounded-lg mt-2">Test Face Detection</a>
+            </div>
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 transform hover:shadow-2xl transition duration-300">
+                <h2 class="text-xl font-semibold mb-4 flex items-center">
+                    <svg class="w-6 h-6 mr-2 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    Recent Detections
+                </h2>
+                <ul id="detection_log" class="mt-4 space-y-3 max-h-96 overflow-y-auto pr-2"></ul>
+                <button onclick="loadDetectionLog()" class="mt-4 bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 focus:ring-4 focus:ring-primary-300 dark:focus:ring-primary-800 transition flex items-center w-full">
+                    <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Refresh Detections
+                </button>
+            </div>
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 transform hover:shadow-2xl transition duration-300">
+                <h2 class="text-xl font-semibold mb-4 flex items-center">
+                    <svg class="w-6 h-6 mr-2 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Register Student
+                </h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Capture photos for face recognition.</p>
+                <a href="/register" class="block w-full bg-accent-500 text-white py-3 rounded-lg hover:bg-accent-600 focus:ring-4 focus:ring-accent-300 dark:focus:ring-accent-800 transition text-center flex items-center justify-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Register New Student
+                </a>
+            </div>
+        </div>
+    </main>
+    <script>
+        const html = document.documentElement;
+        const themeToggle = document.getElementById('theme-toggle');
+        themeToggle.addEventListener('click', () => {
+            html.classList.toggle('dark');
+            localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+        });
+        if (localStorage.getItem('theme') === 'dark') {
+            html.classList.add('dark');
+        }
+        async function loadSnapshot() {
+            const sel = document.getElementById('snapClass');
+            const res = await fetch('/students/' + encodeURIComponent(sel.value));
+            const data = await res.json();
+            const ul = document.getElementById('snapshot');
+            ul.innerHTML = '';
+            const status = data.status || {};
+            data.students.forEach(n => {
+                const li = document.createElement('li');
+                const s = status[n] || 'U';
+                li.textContent = `${n} — ${s === 'A' ? 'Present' : 'Absent'}`;
+                li.className = `py-2 px-4 rounded-lg ${s === 'A' ? 'snapshot-present' : 'snapshot-absent'}`;
+                ul.appendChild(li);
+            });
+        }
+        async function loadDetectionLog() {
+            const res = await fetch('/detection_log');
+            const data = await res.json();
+            const ul = document.getElementById('detection_log');
+            ul.innerHTML = '';
+            if (data.detections) {
+                data.detections.forEach(d => {
+                    const li = document.createElement('li');
+                    li.textContent = d.message;
+                    li.className = `py-2 px-4 rounded-lg ${d.message.includes('UNKNOWN') ? 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/50' : 'text-accent-600 dark:text-accent-400 bg-accent-50 dark:bg-accent-900/50'}`;
+                    ul.appendChild(li);
+                });
+            }
+        }
+        window.onload = () => {
+            loadSnapshot();
+            loadDetectionLog();
+            setInterval(loadDetectionLog, 5000); // Refresh detection log every 5 seconds
+        };
+    </script>
+</body>
+</html>

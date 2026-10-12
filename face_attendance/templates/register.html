@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Student - Face Attendance</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {'50':'#f0f9ff','100':'#e0f2fe','200':'#bae6fd','300':'#7dd3fc','400':'#38bdf8','500':'#0ea5e9','600':'#0284c7','700':'#0369a1','800':'#075985','900':'#0c4a6e'},
+                        accent: {'500':'#10b981','600':'#059669'},
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .status-error { @apply bg-red-500/20 text-red-600 dark:bg-red-600/20 dark:text-red-400; }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 font-sans text-gray-900 dark:text-gray-100 transition-colors duration-300">
+    <header class="bg-white dark:bg-gray-800 shadow-lg">
+        <div class="container mx-auto p-6 flex justify-between items-center">
+            <h1 class="text-2xl font-bold flex items-center">
+                <svg class="w-8 h-8 mr-2 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Register Student
+            </h1>
+            <div class="flex items-center space-x-4">
+                <a href="/admin" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition">Back to Dashboard</a>
+                <button id="theme-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition">
+                    <svg class="w-5 h-5 text-gray-800 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+    <main class="container mx-auto p-6">
+        {% if camera_error %}
+            <div class="bg-red-50 dark:bg-red-900/50 border-l-4 border-red-500 text-red-600 dark:text-red-300 p-4 mb-6 rounded-lg flex items-center" role="alert">
+                <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                    <p class="font-bold">Camera Error</p>
+                    <p>{{ camera_error }}</p>
+                </div>
+            </div>
+        {% endif %}
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 transform hover:shadow-2xl transition duration-300">
+            <form id="registerForm" method="post" action="/capture" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Select Class</label>
+                    <select name="class_name" id="class_name" class="w-full p-3 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition" required>
+                        {% for c in classes %}
+                            <option value="{{c}}">{{c}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Student Name</label>
+                    <input name="user_name" id="user_name" class="w-full p-3 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition" placeholder="Enter student name" required />
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Current images captured: <span id="image_count">0</span> / {{ max_images }}</p>
+                    <button type="submit" id="captureBtn" class="w-full bg-primary-600 text-white py-3 rounded-lg hover:bg-primary-700 focus:ring-4 focus:ring-primary-300 dark:focus:ring-primary-800 transition flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        Capture Image
+                    </button>
+                </div>
+            </form>
+            <div class="mt-4">
+                <img id="preview" src="/video_feed" class="w-full rounded-xl border border-gray-200 dark:border-gray-600 shadow-inner" />
+            </div>
+        </div>
+    </main>
+    <script>
+        const html = document.documentElement;
+        const themeToggle = document.getElementById('theme-toggle');
+        themeToggle.addEventListener('click', () => {
+            html.classList.toggle('dark');
+            localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+        });
+        if (localStorage.getItem('theme') === 'dark') {
+            html.classList.add('dark');
+        }
+
+        const form = document.getElementById('registerForm');
+        const className = document.getElementById('class_name');
+        const userName = document.getElementById('user_name');
+        const captureBtn = document.getElementById('captureBtn');
+        const imageCount = document.getElementById('image_count');
+        let count = 0;
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (count >= {{ max_images }}) {
+                alert(`Maximum ${{{ max_images }}} images reached for this student.`);
+                return;
+            }
+            const formData = new FormData(form);
+            const res = await fetch('/capture', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (data.ok) {
+                count = data.count;
+                imageCount.textContent = count;
+                alert(data.msg);
+            } else {
+                alert(data.msg || 'Error capturing image');
+            }
+        });
+
+        // Auto-update preview
+        setInterval(() => {
+            document.getElementById('preview').src = '/video_feed?' + new Date().getTime();
+        }, 1000);
+    </script>
+</body>
+</html>

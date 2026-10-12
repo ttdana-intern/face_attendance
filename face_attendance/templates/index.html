@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Attendance</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image: url('/static/bg.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+        .card {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+        .card h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #0c4a6e;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+            color: #fff;
+            transition: background 0.3s;
+        }
+        .btn-user {
+            background-color: #0284c7;
+        }
+        .btn-user:hover {
+            background-color: #0369a1;
+        }
+        .btn-admin {
+            background-color: #059669;
+        }
+        .btn-admin:hover {
+            background-color: #047857;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div>
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" stroke="#0284c7" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="mb-4">
+                <path d="M5.121 17.804A8.947 8.947 0 0112 15a8.947 8.947 0 016.879 2.804" />
+                <path d="M15 10a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path d="M12 3a9 9 0 100 18 9 9 0 000-18z" />
+            </svg>
+        </div>
+        <h1>Face Attendance</h1>
+        <a href="/user" class="btn btn-user">User - View Attendance</a>
+        <a href="/admin_login" class="btn btn-admin">Admin Login</a>
+    </div>
+</body>
+</html>
